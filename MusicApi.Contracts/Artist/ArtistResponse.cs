@@ -3,9 +3,9 @@
     public record ArtistResponse(
         string Mbid,
         string Description,
-        List<Album> Albums );
+        List<AlbumDto> Albums );
 
-    public record Album(
+    public record AlbumDto(
         string Title, 
         string Id, 
         string Image);

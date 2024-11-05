@@ -10,6 +10,6 @@ namespace MusicApi.Services
 {
     public interface IArtistService
     {
-        Artist GetArtist(string mbid);
+        Task<ArtistResponse> GetArtistAsync(string mbid);
     }
 }

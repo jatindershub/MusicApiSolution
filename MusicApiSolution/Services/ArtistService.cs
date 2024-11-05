@@ -3,53 +3,69 @@ using ArtistInfo.Api.Services.Wikipedia;
 using ArtistInfo.Api.Services.Wikidata;
 using ArtistInfo.Api.Services.CoverArtArchive; // todo: find ud af om man bare kan kalde /Services i stedet for individuelle mapper
 using MusicApi.Models;
+using MusicApi.Contracts.Artist;
+using Newtonsoft.Json.Linq;
 
 
 namespace MusicApi.Services
 {
     public class ArtistService : IArtistService
     {
-        //private static readonly Dictionary<Guid, Artist> _artist = new(); // todo: denne skal bruges til når man skal implementere create, update, delete
-
         private readonly IMusicBrainzService _musicBrainzService;
         private readonly IWikidataService _wikidataService;
         private readonly IWikipediaService _wikipediaService;
         private readonly ICoverArtArchiveService _coverArtService;
 
-        // metode med dummy data
-        /*public Artist GetArtist(string mbid)
+        public ArtistService(IMusicBrainzService musicBrainzService, IWikidataService wikidataService,
+            IWikipediaService wikipediaService, ICoverArtArchiveService coverArtService)
         {
-            var album1 = new Album() // todo skal slettes
-            {
-                Title = "Nevermind", 
-                Id = "1b022e01-4da6-387b-8658-8678046e4cef", 
-                Image = "https://coverartarchive.org/release/a146429a-cedc-3ab0-9e41-1aaf5f6cdc2"
-            };
+            _musicBrainzService = musicBrainzService;
+            _wikidataService = wikidataService;
+            _wikipediaService = wikipediaService;
+            _coverArtService = coverArtService;
+        }
 
-            var album2 = new Album()
-            {
-                Title = "In Utero",
-                Id = "4b02a382-86f0-4568-a9e0-0c567cf8f5b6",
-                Image = "https://coverartarchive.org/release/0f8a7e91-308d-470a-b5f8-1d93b6a26b08"
-            };
-
-            var albums = new List<Album>
-            {
-                album1,
-                album2,
-            };
-
-            var artist = new Artist("5b11f4ce-a62d-471e-81fc-a69a8278c7da", "Nirvana was an American rock band formed in Aberdeen, Washington, in 1987.", albums);
-
-            return artist;
-        }*/
-        public Artist GetArtist(string mbid)
+        public async Task<ArtistResponse> GetArtistAsync(string mbid)
         {
-            // herinde skal logikken være til når vi skal kalde de forskellige api'er fra /services
+            var artistData = await _musicBrainzService.GetArtistAsync(mbid);
+            var releaseGroups = (JArray)artistData["release-groups"];
+            var modelAlbums = new List<Models.Album>();
 
-            //var artist = new Artist("","",Liste af albums)
+            // Create Model Albums
+            foreach (var releaseGroup in releaseGroups)
+            {
+                var id = releaseGroup["id"]?.ToString();
+                var title = releaseGroup["title"]?.ToString();
+                var imageUrl = await _coverArtService.GetCoverArtAsync(id);
+
+                modelAlbums.Add(new Album(title, id, imageUrl));
+            }
+
+            // Map to Contract Albums
+            var contractAlbums = modelAlbums.Select(MapToContractAlbum).ToList();
+
+            var relations = (JArray)artistData["relations"];
+            var wikidataRelation = relations?.FirstOrDefault(r => r["type"]?.ToString() == "wikidata");
+            string description = null;
+
+            if (wikidataRelation != null)
+            {
+                var wikidataUrl = wikidataRelation["url"]?["resource"]?.ToString();
+                var wikidataId = wikidataUrl?.Split('/').Last();
+                description = await _wikipediaService.GetDescriptionAsync(wikidataId);
+            }
+
+            return new ArtistResponse(mbid, description, contractAlbums);
+        }
 
 
+        private static Contracts.Artist.AlbumDto MapToContractAlbum(Models.Album modelAlbum)
+        {
+            return new Contracts.Artist.AlbumDto(
+                modelAlbum.Title,
+                modelAlbum.Id,
+                modelAlbum.Image
+            );
         }
     }
 }
