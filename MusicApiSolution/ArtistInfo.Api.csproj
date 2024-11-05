@@ -10,4 +10,14 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MusicApi.Contracts\ArtistInfo.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\MusicBrainz\" />
+    <Folder Include="Services\CoverArtArchive\" />
+    <Folder Include="Services\Wikipedia\" />
+  </ItemGroup>
+
 </Project>
