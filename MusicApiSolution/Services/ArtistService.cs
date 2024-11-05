@@ -29,7 +29,7 @@ namespace MusicApi.Services
         {
             var artistData = await _musicBrainzService.GetArtistAsync(mbid);
             var releaseGroups = (JArray)artistData["release-groups"];
-            var modelAlbums = new List<Models.Album>();
+            var modelAlbums = new List<Album>();
 
             // Create Model Albums
             foreach (var releaseGroup in releaseGroups)
@@ -52,16 +52,18 @@ namespace MusicApi.Services
             {
                 var wikidataUrl = wikidataRelation["url"]?["resource"]?.ToString();
                 var wikidataId = wikidataUrl?.Split('/').Last();
-                description = await _wikipediaService.GetDescriptionAsync(wikidataId);
+                var wikipediaTitle = await _wikidataService.GetWikipediaTitleAsync(wikidataId);
+
+                description = await _wikipediaService.GetDescriptionAsync(wikipediaTitle);
             }
 
             return new ArtistResponse(mbid, description, contractAlbums);
         }
 
 
-        private static Contracts.Artist.AlbumDto MapToContractAlbum(Models.Album modelAlbum)
+        private static AlbumDto MapToContractAlbum(Album modelAlbum)
         {
-            return new Contracts.Artist.AlbumDto(
+            return new AlbumDto(
                 modelAlbum.Title,
                 modelAlbum.Id,
                 modelAlbum.Image

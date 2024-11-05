@@ -21,7 +21,6 @@ namespace ArtistInfo.Api.Services.Wikidata
 
             return wikidataJson["entities"]?[wikidataId]?["sitelinks"]?["enwiki"]?["title"]?.ToString();
 
-            // todo: skal der noget fejlhåndtering på her?`noget try-catch eller skal det på et højere niveau?
         }
     }
 }
