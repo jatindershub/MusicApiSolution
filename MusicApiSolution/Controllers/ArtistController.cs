@@ -21,9 +21,22 @@ namespace MusicApi.Controllers
         {
             var artist = _artistService.GetArtist(mbid);
 
-            var response = new ArtistResponse(artist.Mbid, artist.Description, artist.Albums);
+            // mapper Albums fra models til contracts
+            var contractAlbums = artist.Albums.Select(MapToContractAlbum).ToList();
+
+            var response = new ArtistResponse(artist.Mbid, artist.Description, contractAlbums);
 
             return Ok(response);
+        }
+
+        // todo: find ud af om den her helper metode skal være her, eller om den skal et andet sted hen - måske over i en helper manager?
+        private static Contracts.Artist.Album MapToContractAlbum(Models.Album modelAlbum)
+        {
+            return new Contracts.Artist.Album(
+                modelAlbum.Title,
+                modelAlbum.Id,
+                modelAlbum.Image
+                );
         }
 
         
