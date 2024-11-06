@@ -2,6 +2,6 @@
 {
     public interface ICoverArtArchiveService
     {
-        Task<string> GetCoverArtAsync(string releaseGroupId);
+        Task<List<string>> GetCoverArtsAsync(List<string> releaseGroupIds);
     }
 }
