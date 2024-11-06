@@ -1,0 +1,52 @@
+﻿@page
+@model PrivacyModel
+@{
+    ViewData["Title"] = "Privacy Policy";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist Info Lookup</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script>
+        async function getArtistInfo() {
+            const mbid = '83d91898-7763-47d7-b03b-b92132375c47';
+            const responseContainer = document.getElementById('responseContainer');
+            responseContainer.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(`http://localhost:5090/${mbid}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const artistData = await response.json();
+                responseContainer.innerHTML = `
+                    <h2>Artist Information</h2>
+                    <p><strong>ID:</strong> ${artistData.mbid}</p>
+                    <p><strong>Description:</strong> ${artistData.description}</p>
+                    <h3>Albums</h3>
+                    <ul>
+                        ${artistData.albums.map(album => `
+                            <li>
+                                <strong>Title:</strong> ${album.title}<br>
+                                <strong>ID:</strong> ${album.id}<br>
+                                <img src="${album.image ?? ''}" alt="Album cover" style="width: 150px; height: auto;"/>
+                            </li>`).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                responseContainer.innerHTML = 'An error occurred: ' + error.message;
+            }
+        }
+
+        // Automatically call the function when the page loads
+        window.onload = getArtistInfo;
+    </script>
+</head>
+<body>
+<h1>Artist Info Lookup</h1>
+<div id="responseContainer"></div>
+</body>
+</html>
