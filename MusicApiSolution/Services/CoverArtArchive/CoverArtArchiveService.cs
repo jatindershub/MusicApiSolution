@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace ArtistInfo.Api.Services.CoverArtArchive
 {
@@ -13,29 +14,34 @@ namespace ArtistInfo.Api.Services.CoverArtArchive
 
         public async Task<List<string>> GetCoverArtsAsync(List<string> releaseGroupIds)
         {
-            var coverArtTasks = releaseGroupIds.Select(async releaseGroupId =>
+            var coverArtTasks = releaseGroupIds.Select(id => FetchCoverArtAsync(id)).ToList();
+            var coverArts = await Task.WhenAll(coverArtTasks);
+            return coverArts.ToList();
+        }
+
+        public async Task<string> FetchCoverArtAsync(string releaseGroupId)
+        {
+            try
             {
-                var coverArtUrl = $"https://coverartarchive.org/release-group/{releaseGroupId}";
-                try
-                {
-                    var response = await _httpClient.GetAsync(coverArtUrl);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        var coverJson = JObject.Parse(content);
-                        return coverJson["images"]?.First?["image"]?.ToString();
-                    }
-                }
-                catch (Exception)
-                {
-                    // If no cover art is found or an exception is thrown, return null
-                }
+                var response = await _httpClient.GetAsync($"https://coverartarchive.org/release-group/{releaseGroupId}");
+                response.EnsureSuccessStatusCode();
 
-                return null;
-            });
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var jsonDocument = JsonDocument.Parse(responseContent);
+                var imageUrl = jsonDocument.RootElement.GetProperty("images")[0].GetProperty("image").GetString();
 
-            // Run all cover art requests concurrently and return all results, including nulls
-            return (await Task.WhenAll(coverArtTasks)).ToList();
+                return imageUrl;
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"Error fetching cover art for release group {releaseGroupId}: {ex.Message}");
+                return null; // Return null if the cover art couldn't be fetched
+            }
+            catch (KeyNotFoundException)
+            {
+                Console.WriteLine($"No cover art found for release group {releaseGroupId}");
+                return null; // Return null if no cover art is found
+            }
         }
     }
 }

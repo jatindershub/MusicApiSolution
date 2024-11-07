@@ -1,12 +1,12 @@
 ﻿using ArtistInfo.Api.Services.MusicBrainz;
 using ArtistInfo.Api.Services.Wikipedia;
 using ArtistInfo.Api.Services.Wikidata;
-using ArtistInfo.Api.Services.CoverArtArchive; // todo: find ud af om man bare kan kalde /Services i stedet for individuelle mapper
+using ArtistInfo.Api.Services.CoverArtArchive;
 using MusicApi.Models;
 using MusicApi.Contracts.Artist;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Caching.Memory;
-
+using System.Diagnostics;
 
 namespace MusicApi.Services
 {
@@ -44,13 +44,22 @@ namespace MusicApi.Services
                 // Delay to respect the 1 request per second rate limit
                 await Task.Delay(1000);
 
+                var stopwatch = Stopwatch.StartNew();
+
+                // Logging the time taken for each API call
+                stopwatch.Restart();
                 var artistData = await _musicBrainzService.GetArtistAsync(mbid);
+                stopwatch.Stop();
+                Console.WriteLine($"MusicBrainz API call took {stopwatch.ElapsedMilliseconds} ms");
+
                 var releaseGroups = (JArray)artistData["release-groups"];
                 var releaseGroupIds = releaseGroups.Select(rg => rg["id"]?.ToString()).ToList();
                 var titles = releaseGroups.Select(rg => rg["title"]?.ToString()).ToList();
 
-                // Get cover arts concurrently using the new method
+                stopwatch.Restart();
                 var coverArts = await _coverArtService.GetCoverArtsAsync(releaseGroupIds);
+                stopwatch.Stop();
+                Console.WriteLine($"CoverArtArchive API call took {stopwatch.ElapsedMilliseconds} ms");
 
                 // Ensure all lists are of equal size using Zip
                 var modelAlbums = releaseGroupIds
@@ -69,9 +78,16 @@ namespace MusicApi.Services
                 {
                     var wikidataUrl = wikidataRelation["url"]?["resource"]?.ToString();
                     var wikidataId = wikidataUrl?.Split('/').Last();
-                    var wikipediaTitle = await _wikidataService.GetWikipediaTitleAsync(wikidataId);
 
+                    stopwatch.Restart();
+                    var wikipediaTitle = await _wikidataService.GetWikipediaTitleAsync(wikidataId);
+                    stopwatch.Stop();
+                    Console.WriteLine($"Wikidata API call took {stopwatch.ElapsedMilliseconds} ms");
+
+                    stopwatch.Restart();
                     description = await _wikipediaService.GetDescriptionAsync(wikipediaTitle);
+                    stopwatch.Stop();
+                    Console.WriteLine($"Wikipedia API call took {stopwatch.ElapsedMilliseconds} ms");
                 }
 
                 var artistResponse = new ArtistResponse(mbid, description, contractAlbums);
@@ -86,8 +102,6 @@ namespace MusicApi.Services
                 // Release the semaphore to allow the next request
                 _semaphore.Release();
             }
-
-
         }
 
         private static AlbumDto MapToContractAlbum(Album modelAlbum)
