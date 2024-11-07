@@ -57,7 +57,7 @@ namespace MusicApi.Services
                 var titles = releaseGroups.Select(rg => rg["title"]?.ToString()).ToList();
 
                 stopwatch.Restart();
-                var coverArts = await _coverArtService.GetCoverArtsAsync(releaseGroupIds);
+                var coverArts = await _coverArtService.FetchCoverArtsAsync(releaseGroupIds);
                 stopwatch.Stop();
                 Console.WriteLine($"CoverArtArchive API call took {stopwatch.ElapsedMilliseconds} ms");
 

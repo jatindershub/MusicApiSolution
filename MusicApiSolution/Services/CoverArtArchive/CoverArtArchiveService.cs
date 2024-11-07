@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace ArtistInfo.Api.Services.CoverArtArchive
@@ -6,41 +7,48 @@ namespace ArtistInfo.Api.Services.CoverArtArchive
     public class CoverArtArchiveService : ICoverArtArchiveService
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<CoverArtArchiveService> _logger;
 
-        public CoverArtArchiveService(HttpClient httpClient)
+        public CoverArtArchiveService(HttpClient httpClient, ILogger<CoverArtArchiveService> logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
         }
 
-        public async Task<List<string>> GetCoverArtsAsync(List<string> releaseGroupIds)
+        public async Task<IEnumerable<string>> FetchCoverArtsAsync(List<string> groupIds)
         {
-            var coverArtTasks = releaseGroupIds.Select(id => FetchCoverArtAsync(id)).ToList();
+            var coverArtTasks = groupIds.Select(FetchCoverArtAsync).ToList();
             var coverArts = await Task.WhenAll(coverArtTasks);
-            return coverArts.ToList();
+            return coverArts;
         }
 
-        public async Task<string> FetchCoverArtAsync(string releaseGroupId)
+        public async Task<string> FetchCoverArtAsync(string groupId)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"https://coverartarchive.org/release-group/{releaseGroupId}");
+                var response = await _httpClient.GetAsync($"https://coverartarchive.org/release-group/{groupId}");
                 response.EnsureSuccessStatusCode();
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var jsonDocument = JsonDocument.Parse(responseContent);
-                var imageUrl = jsonDocument.RootElement.GetProperty("images")[0].GetProperty("image").GetString();
+                var json = JObject.Parse(responseContent);
+                var imageUrl = json["images"]?.First?["image"]?.ToString();
 
-                return imageUrl;
+                return imageUrl ?? string.Empty;
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Error fetching cover art for release group {releaseGroupId}: {ex.Message}");
-                return null; // Return null if the cover art couldn't be fetched
+                _logger.LogError(ex, "Error fetching cover art for release group {GroupId}", groupId);
+                return null;
             }
-            catch (KeyNotFoundException)
+            catch (IndexOutOfRangeException ex)
             {
-                Console.WriteLine($"No cover art found for release group {releaseGroupId}");
-                return null; // Return null if no cover art is found
+                _logger.LogWarning(ex, "No cover art found for release group {GroupId}", groupId);
+                return null;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Error parsing JSON for release group {GroupId}", groupId);
+                return null;
             }
         }
     }
