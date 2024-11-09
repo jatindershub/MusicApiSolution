@@ -17,8 +17,8 @@ namespace MusicApi.Services
         private readonly IWikipediaService _wikipediaService;
         private readonly ICoverArtArchiveService _coverArtService;
 
-        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        private static readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+        private static readonly SemaphoreSlim _semaphore = new (1, 1);
+        private static readonly MemoryCache _cache = new (new MemoryCacheOptions());
 
         public ArtistService(IMusicBrainzService musicBrainzService, IWikidataService wikidataService,
             IWikipediaService wikipediaService, ICoverArtArchiveService coverArtService)
@@ -57,7 +57,7 @@ namespace MusicApi.Services
                 var titles = releaseGroups.Select(rg => rg["title"]?.ToString()).ToList();
 
                 stopwatch.Restart();
-                var coverArts = await _coverArtService.FetchCoverArtsAsync(releaseGroupIds);
+                var coverArts = await _coverArtService.FetchCoverArtsAsync(releaseGroupIds);  
                 stopwatch.Stop();
                 Console.WriteLine($"CoverArtArchive API call took {stopwatch.ElapsedMilliseconds} ms");
 

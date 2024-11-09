@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace ArtistInfo.Api.Services.CoverArtArchive
@@ -11,6 +10,7 @@ namespace ArtistInfo.Api.Services.CoverArtArchive
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<CoverArtArchiveService> _logger;
+        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(50); // Limit to 50 concurrent calls
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CoverArtArchiveService"/> class.
@@ -30,7 +30,24 @@ namespace ArtistInfo.Api.Services.CoverArtArchive
         /// <returns>A collection of cover art URLs.</returns>
         public async Task<IEnumerable<string>> FetchCoverArtsAsync(List<string> groupIds)
         {
-            var coverArtTasks = groupIds.Select(FetchCoverArtAsync).ToList();
+            var coverArtTasks = new List<Task<string>>();
+
+            foreach (var groupId in groupIds)
+            {
+                await _semaphore.WaitAsync();
+                coverArtTasks.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        return await FetchCoverArtAsync(groupId);
+                    }
+                    finally
+                    {
+                        _semaphore.Release();
+                    }
+                }));
+            }
+
             var coverArts = await Task.WhenAll(coverArtTasks);
             return coverArts;
         }
