@@ -9,7 +9,6 @@ namespace MusicApi.Controllers
     [Route("[controller]")]
     public class ArtistController : ControllerBase
     {
-        // todo: dependency injection
         private readonly IArtistService _artistService;
         public ArtistController(IArtistService artistService)
         {

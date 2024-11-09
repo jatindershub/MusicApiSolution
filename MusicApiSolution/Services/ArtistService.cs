@@ -42,7 +42,7 @@ namespace MusicApi.Services
             await _semaphore.WaitAsync();
             try
             {
-                // Delay to respect the rate limit, but only if needed
+                // Delay to respect the rate limit, but only if needed. MusicBrainz: 1 request/sec (anonymous) or 5 requests/sec (authenticated).
                 await Task.Delay(1000);
 
                 var stopwatch = Stopwatch.StartNew();
@@ -52,11 +52,10 @@ namespace MusicApi.Services
                     _logger.LogInformation($"Fetching artist data for MBID: {mbid}");
                     var artistData = await _musicBrainzService.GetArtistAsync(mbid);
 
-                    // Handle the case where the API returns null for the artist
                     if (artistData == null)
                     {
                         _logger.LogWarning($"MusicBrainz API returned null for MBID: {mbid}");
-                        return null; // Consider allowing the controller to handle this case.
+                        return null;
                     }
 
                     _logger.LogInformation($"MusicBrainz API call took {stopwatch.ElapsedMilliseconds} ms");
@@ -95,7 +94,7 @@ namespace MusicApi.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Error fetching artist data for MBID: {mbid}");
-                    throw; // Consider returning a default ArtistResponse or handling the error more gracefully
+                    throw;
                 }
             }
             finally

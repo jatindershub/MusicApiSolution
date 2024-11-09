@@ -50,12 +50,12 @@ namespace ArtistInfo.Api.Services.Wikidata
             catch (HttpRequestException httpEx)
             {
                 _logger.LogError(httpEx, "An error occurred while making the HTTP request to Wikidata API for ID: {WikidataId}", wikidataId);
-                throw; // Consider rethrowing or handling the error as needed
+                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unexpected error occurred while retrieving Wikipedia title for Wikidata ID: {WikidataId}", wikidataId);
-                throw; // Consider rethrowing or handling the error as needed
+                throw;
             }
         }
     }

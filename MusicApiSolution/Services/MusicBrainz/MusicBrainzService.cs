@@ -32,7 +32,7 @@ namespace ArtistInfo.Api.Services.MusicBrainz
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("GetArtistAsync: Request to MusicBrainz failed with status code {StatusCode}, reason: {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
-                    return null; // or consider throwing an exception if this fits your scenario
+                    return null;
                 }
 
                 var content = await response.Content.ReadAsStringAsync();
@@ -48,7 +48,7 @@ namespace ArtistInfo.Api.Services.MusicBrainz
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "GetArtistAsync: Error occurred while making request to MusicBrainz for MBID {MBID}", mbid);
-                throw; // Re-throwing after logging to ensure the caller is aware of the failure
+                throw;
             }
             catch (JsonException ex)
             {
@@ -58,7 +58,7 @@ namespace ArtistInfo.Api.Services.MusicBrainz
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetArtistAsync: Unexpected error occurred for MBID {MBID}", mbid);
-                throw; // Re-throw to ensure unexpected issues are surfaced
+                throw;
             }
         }
     }
