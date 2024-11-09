@@ -20,6 +20,10 @@ namespace MusicApi.Controllers
         public async Task<IActionResult> GetArtist(string mbid)
         {
             var artistResponse = await _artistService.GetArtistAsync(mbid);
+            if (artistResponse == null)
+            {
+                return NotFound(new { message = $"Artist with MBID '{mbid}' not found." });
+            }
             return Ok(artistResponse);
         }
     }

@@ -47,8 +47,17 @@ namespace MusicApi.Services
                 try
                 {
                     var artistData = await _musicBrainzService.GetArtistAsync(mbid);
-                    Console.WriteLine($"MusicBrainz API call took {stopwatch.ElapsedMilliseconds} ms");
 
+                    // Handle the case where the API returns null for the artist
+                    if (artistData == null)
+                    {
+                        Console.WriteLine($"MusicBrainz API returned null for MBID: {mbid}");
+                        // You can return an empty response or throw an exception for the controller to handle it
+                        return null; // Consider allowing the controller to handle this case.
+                    }
+
+                    Console.WriteLine($"MusicBrainz API call took {stopwatch.ElapsedMilliseconds} ms");
+                    
                     var releaseGroups = (JArray)artistData["release-groups"] ?? new JArray();
                     var releaseGroupIds = releaseGroups.Select(rg => rg["id"]?.ToString()).ToList();
                     var titles = releaseGroups.Select(rg => rg["title"]?.ToString()).ToList();
