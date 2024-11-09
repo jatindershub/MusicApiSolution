@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtistInfo.Api", "MusicApiS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtistInfo.Contracts", "MusicApi.Contracts\ArtistInfo.Contracts.csproj", "{8A54AE8F-74F0-4C5A-99B5-3B74C5440F01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArtistInfo.Test", "ArtistInfo.Test\ArtistInfo.Test.csproj", "{26B80200-A479-4589-B176-169F10F754D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8A54AE8F-74F0-4C5A-99B5-3B74C5440F01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A54AE8F-74F0-4C5A-99B5-3B74C5440F01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A54AE8F-74F0-4C5A-99B5-3B74C5440F01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26B80200-A479-4589-B176-169F10F754D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26B80200-A479-4589-B176-169F10F754D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26B80200-A479-4589-B176-169F10F754D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26B80200-A479-4589-B176-169F10F754D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
