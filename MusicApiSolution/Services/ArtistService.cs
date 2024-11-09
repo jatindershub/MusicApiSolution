@@ -16,23 +16,26 @@ namespace MusicApi.Services
         private readonly IWikidataService _wikidataService;
         private readonly IWikipediaService _wikipediaService;
         private readonly ICoverArtArchiveService _coverArtService;
+        private readonly ILogger<ArtistService> _logger;
 
-        private static readonly SemaphoreSlim _semaphore = new (1, 1);
-        private static readonly MemoryCache _cache = new (new MemoryCacheOptions());
+        private static readonly SemaphoreSlim _semaphore = new(1, 1);
+        private static readonly MemoryCache _cache = new(new MemoryCacheOptions());
 
         public ArtistService(IMusicBrainzService musicBrainzService, IWikidataService wikidataService,
-            IWikipediaService wikipediaService, ICoverArtArchiveService coverArtService)
+            IWikipediaService wikipediaService, ICoverArtArchiveService coverArtService, ILogger<ArtistService> logger)
         {
             _musicBrainzService = musicBrainzService;
             _wikidataService = wikidataService;
             _wikipediaService = wikipediaService;
             _coverArtService = coverArtService;
+            _logger = logger;
         }
 
         public async Task<ArtistResponse> GetArtistAsync(string mbid)
         {
             if (_cache.TryGetValue(mbid, out ArtistResponse cachedResponse))
             {
+                _logger.LogInformation($"Cache hit for MBID: {mbid}");
                 return cachedResponse;
             }
 
@@ -46,18 +49,18 @@ namespace MusicApi.Services
 
                 try
                 {
+                    _logger.LogInformation($"Fetching artist data for MBID: {mbid}");
                     var artistData = await _musicBrainzService.GetArtistAsync(mbid);
 
                     // Handle the case where the API returns null for the artist
                     if (artistData == null)
                     {
-                        Console.WriteLine($"MusicBrainz API returned null for MBID: {mbid}");
-                        // You can return an empty response or throw an exception for the controller to handle it
+                        _logger.LogWarning($"MusicBrainz API returned null for MBID: {mbid}");
                         return null; // Consider allowing the controller to handle this case.
                     }
 
-                    Console.WriteLine($"MusicBrainz API call took {stopwatch.ElapsedMilliseconds} ms");
-                    
+                    _logger.LogInformation($"MusicBrainz API call took {stopwatch.ElapsedMilliseconds} ms");
+
                     var releaseGroups = (JArray)artistData["release-groups"] ?? new JArray();
                     var releaseGroupIds = releaseGroups.Select(rg => rg["id"]?.ToString()).ToList();
                     var titles = releaseGroups.Select(rg => rg["title"]?.ToString()).ToList();
@@ -86,11 +89,12 @@ namespace MusicApi.Services
                     var artistResponse = new ArtistResponse(mbid, description, contractAlbums);
                     _cache.Set(mbid, artistResponse, TimeSpan.FromMinutes(5));
 
+                    _logger.LogInformation($"Successfully fetched artist data for MBID: {mbid}");
                     return artistResponse;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error fetching artist data: {ex.Message}");
+                    _logger.LogError(ex, $"Error fetching artist data for MBID: {mbid}");
                     throw; // Consider returning a default ArtistResponse or handling the error more gracefully
                 }
             }
@@ -99,7 +103,6 @@ namespace MusicApi.Services
                 _semaphore.Release();
             }
         }
-
 
         private static AlbumDto MapToContractAlbum(Album modelAlbum)
         {
