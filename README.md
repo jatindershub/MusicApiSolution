@@ -37,7 +37,7 @@ These instructions will help you set up a copy of the project on your local mach
    git clone https://github.com/jatindershub/MusicApiSolution.git
    cd MusicApiSolution
    ```
-2. Navigate to the `MusicApi` folder and restore dependencies:
+2. Navigate to the `MusicApiSolution` folder and restore dependencies:
    ```bash
    dotnet restore
    ```
@@ -47,7 +47,7 @@ These instructions will help you set up a copy of the project on your local mach
    ```
 4. Run the API:
    ```bash
-   dotnet run --project MusicApi
+   dotnet run --project MusicApiSolution
    ```
 5. The API should now be available at `https://localhost:5001`.
 
