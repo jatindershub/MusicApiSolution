@@ -31,6 +31,11 @@ namespace MusicApi.Services
             _logger = logger;
         }
 
+        public void test()
+        {
+            Console.WriteLine("lolleren");
+        }
+
         public async Task<ArtistResponse> GetArtistAsync(string mbid)
         {
             if (_cache.TryGetValue(mbid, out ArtistResponse cachedResponse))
