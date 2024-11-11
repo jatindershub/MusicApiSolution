@@ -44,7 +44,7 @@ namespace ArtistInfo.Test.Services
         public async Task GetArtistAsync_ShouldReturnNull_WhenMusicBrainzServiceReturnsNull()
         {
             // Arrange
-            string mbid = "Invalid-mbid"; // Use a clearly invalid MBID to simulate the scenario
+            string mbid = "Invalid-mbid";
             JObject artistData = null;
             object cacheEntry = null;
             _mockCache.Setup(cache => cache.TryGetValue(mbid, out cacheEntry)).Returns(false);

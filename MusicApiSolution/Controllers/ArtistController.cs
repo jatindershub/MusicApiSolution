@@ -15,7 +15,7 @@ namespace MusicApi.Controllers
             _artistService = artistService;
         }
 
-        [HttpGet("/{mbid}")]
+        [HttpGet("{mbid}")]
         public async Task<IActionResult> GetArtist(string mbid)
         {
             var artistResponse = await _artistService.GetArtistAsync(mbid);
