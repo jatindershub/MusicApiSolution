@@ -49,7 +49,7 @@ These instructions will help you set up a copy of the project on your local mach
    ```bash
    dotnet run --project MusicApiSolution
    ```
-5. The API should now be available at `https://localhost:5001`.
+5. The API should now be available at `https://localhost:5090`.
 
 ## API Endpoints
 - **GET** `/api/artist/{mbid}`: Retrieves detailed information about an artist.
